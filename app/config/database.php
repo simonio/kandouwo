@@ -55,9 +55,9 @@ return array(
 		'mysql' => array(
 			'driver'    => 'mysql',
 			'host'      => 'localhost',
-			'database'  => 'database',
+			'database'  => 'kandouwo',
 			'username'  => 'root',
-			'password'  => '',
+			'password'  => 'jTC2xjnrqFVUd532',
 			'charset'   => 'utf8',
 			'collation' => 'utf8_unicode_ci',
 			'prefix'    => '',

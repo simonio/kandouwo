@@ -19,6 +19,7 @@ Route::get('/', function()
 # ------------------ Api -----------------------------------
 Route::group(array('prefix' => 'api'), function()
 {
+	Route::get('install', 'ApiController@install');
 	Route::get('register', 'ApiController@register');
     Route::get('login', 'ApiController@login');
 	Route::get('logout', 'ApiController@logout');

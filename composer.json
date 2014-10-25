@@ -3,6 +3,7 @@
 	"description": "The Laravel Framework.",
 	"keywords": ["framework", "laravel"],
 	"license": "MIT",
+	"type": "project",
 	"require": {
 		"laravel/framework": "4.1.*"
 	},
@@ -14,7 +15,10 @@
 			"app/database/migrations",
 			"app/database/seeds",
 			"app/tests/TestCase.php"
-		]
+		],
+		"psr-4": {
+            "Kandouwo\\": "app/Kandouwo"
+        }
 	},
 	"scripts": {
 		"post-install-cmd": [

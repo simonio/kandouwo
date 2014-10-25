@@ -29,12 +29,39 @@ class ApiController extends BaseController {
 
 
 	/**
+	* 部署数据库
+	*
+	*/
+	public function install() {
+		if(file_exists(__DIR__.'/../kandouwo/database/install.lock')) {
+			echo('<div>数据库已经部署完毕</div>');
+		} else {
+			echo '正在部署数据库...<br>';
+			// new \Kandouwo\database\DB()
+			$ret = App::make('\Kandouwo\database\DB')->create('127.0.0.1', 'root', 'jTC2xjnrqFVUd532', 'kandouwo');
+			if ($ret == true) {
+				\Kandouwo\database\DB::writeFile(__DIR__.'/../kandouwo/database/install.lock', '');
+				echo '<br>数据库部署结束。<br>';
+			} else {
+				echo '<br>数据库部署失败。<br>';
+			}
+		}
+	}
+	
+	/**
 	 * 登录验证.
 	 *
 	 * @return response(json)
 	 */
 	public function login() {
-		echo 'login';
+		echo 'login.<br>';
+		if (Request::secure())
+		{
+			echo 'https';
+		}
+		else {
+			echo 'http';
+		}
 	}
 
 	public function token_test() {

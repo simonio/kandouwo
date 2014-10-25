@@ -7,4 +7,5 @@ $baseDir = dirname($vendorDir);
 
 return array(
     'Monolog\\' => array($vendorDir . '/monolog/monolog/src/Monolog'),
+    'Kandouwo\\' => array($baseDir . '/app/Kandouwo'),
 );
