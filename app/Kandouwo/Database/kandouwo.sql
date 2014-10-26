@@ -13,24 +13,27 @@ SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='TRADITIONAL,ALLOW_INVALID_DATES';
 -- -----------------------------------------------------
 CREATE TABLE IF NOT EXISTS `kandouwo`.`users` (
   `id` BIGINT NOT NULL AUTO_INCREMENT,
-  `nickname` VARCHAR(60) NULL COMMENT '昵称',
+  `uuid` VARCHAR(60) NULL,
+  `nickname` VARCHAR(60) NULL COMMENT '昵称(不唯一，可以任意设置)',
   `password` VARCHAR(60) NULL COMMENT '密码',
-  `authorize` INT NULL COMMENT '权限',
+  `authorize` INT NULL DEFAULT 100 COMMENT '权限',
   `email` VARCHAR(45) NULL COMMENT '邮箱',
-  `sex` VARCHAR(2) NULL COMMENT '性别',
+  `sex` VARCHAR(2) NULL DEFAULT '男' COMMENT '性别',
   `signature` VARCHAR(255) NULL COMMENT '签名',
   `kdou` VARCHAR(45) NULL COMMENT 'k豆',
   `thumbnail` BLOB NULL COMMENT '头像',
   `thumbnail_big` MEDIUMBLOB NULL COMMENT '大头像',
   `attend_date` DATE NULL COMMENT '签到',
-  `lastlogin_datatime` DATETIME NULL COMMENT '最后一次登录日期时间',
   `lastlogin_place` VARCHAR(45) NULL COMMENT '最后一次登录地点',
   `readed_book_num` INT NULL COMMENT '阅读的书本数量',
   `downloaded_book_num` INT NULL COMMENT '下载的书本数量',
   `comment_num` INT NULL COMMENT '评论数',
   `deleted` TINYINT NULL COMMENT '是否删除',
-  `status` TINYINT NULL COMMENT '状态信息',
-  PRIMARY KEY (`id`))
+  `status` TINYINT NULL DEFAULT 0 COMMENT '状态信息',
+  `updated_at` DATETIME NULL,
+  `created_at` DATETIME NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE INDEX `email_UNIQUE` (`email` ASC))
 ENGINE = InnoDB
 COMMENT = '用户的基本信息';
 

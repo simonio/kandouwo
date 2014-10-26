@@ -27,6 +27,9 @@ array (size=3)
  
 class ApiController extends BaseController {
 
+	protected $key = 'nrq!1d5t';
+	protected static $nickname_prefix = '路人';
+	protected static $expired_time = 1800;
 
 	/**
 	* 部署数据库
@@ -40,7 +43,7 @@ class ApiController extends BaseController {
 			// new \Kandouwo\database\DB()
 			$ret = App::make('\Kandouwo\database\DB')->create('127.0.0.1', 'root', 'jTC2xjnrqFVUd532', 'kandouwo');
 			if ($ret == true) {
-				\Kandouwo\database\DB::writeFile(__DIR__.'/../kandouwo/database/install.lock', '');
+				\Kandouwo\Database\DB::writeFile(__DIR__.'/../kandouwo/database/install.lock', '');
 				echo '<br>数据库部署结束。<br>';
 			} else {
 				echo '<br>数据库部署失败。<br>';
@@ -49,19 +52,88 @@ class ApiController extends BaseController {
 	}
 	
 	/**
+	 * 注册.
+	 *
+	 * @return response(json)
+	 */
+	public function register() {
+	
+		// 必须的参数：email, password, uuid
+		// 可附带参数：mail, nickname, sex, ...
+		if (!Input::has('email') || !Input::has('password') || !Input::has('uuid')) {
+			$ret = array('error' => array('msg'=>'','code'=>-1));
+			return Response::json($ret);
+		}
+		
+		
+		// 判断是否已存在该用户
+		// 若未存在，则创建新用户，并返回uid、token等相关信息
+		// 否则返回错误信息
+		$model = User::where('email', '=', Input::get('email'))->first();
+		if ($model) {
+			return Response::json(array('error' => array('msg'=>'email已经被注册','code'=>-2)));
+		}
+		
+		
+		$data = Input::only('email','password','uuid');
+		$data['password'] = Hash::make($data['password']);
+		$dataEx = $this->filldata($data, Input::all());
+		$user = null;
+		$errorInfo = array();
+		
+		try {
+			$user = User::create($dataEx);
+		}
+		catch (Illuminate\Database\QueryException $e) {
+			$errorInfo['msg'] = $e->errorInfo[0];
+			$errorInfo['code'] = $e->errorInfo[1];
+		}
+		
+		if (!$user) {
+			return Response::json(array('error' => $errorInfo));
+		}
+
+		$tokenstring = $this->composeToken(
+			array('uid'=>$user->getkey(),'password'=>$data['password']),
+			$user->getkey()
+		);
+		$user->update(array('nickname'=>ApiController::$nickname_prefix.strval($user->getkey()+123456)));
+		
+		return Response::json(
+			array('data'=>
+				array('uid'=>$user->getkey(),
+					'nickname'=>$user->nickname,
+					'token'=>$tokenstring,
+					'expired'=>ApiController::$expired_time)
+			)
+		);
+	}
+	
+	/**
 	 * 登录验证.
 	 *
 	 * @return response(json)
 	 */
 	public function login() {
-		echo 'login.<br>';
-		if (Request::secure())
-		{
-			echo 'https';
+		if (!Input::has('uid') || !Input::has('password') || !Input::has('uuid')) {
+			$ret = array('error' => array('msg'=>'','code'=>-1));
+			return Response::json($ret);
 		}
-		else {
-			echo 'http';
+		
+		$uid = Input::get('uid');
+		$password = Input::get('password');
+		
+		if (!Auth::validate(array('id' => $uid, 'password' => $password))) {
+			return Response::json(array('error' => array('msg'=>'','code'=>-2)));
 		}
+
+		$tokenstring = $this->composeToken(
+			array('uid'=>$uid,'password'=>$password), $uid
+		);
+		
+		return Response::json(array('data' => 
+			array('token'=>$tokenstring,
+				'expired'=>ApiController::$expired_time)));
 	}
 
 	public function token_test() {
@@ -71,8 +143,7 @@ class ApiController extends BaseController {
 		}
 		
 		$data = array_values(Input::except('t','o'));
-		
-		$token = new TokenManagerBase();
+		$token = new \Kandouwo\Token\TokenManagerBase();
 		$tokenstring = $token->ComposeToken(null, '1.0', 
 			Input::get('t'), 
 			Input::get('o'), 
@@ -83,194 +154,42 @@ class ApiController extends BaseController {
 		//$tokenArray = $token->ParseToken($tokenstring, 'sdfsg44424');
 		//return json_encode($tokenArray);
 	}
-}
-
-/**
- * @brief 使用HMAC-SHA1算法生成oauth_signature签名值
- *
- * @param $key  密钥
- * @param $str  源串
- *
- * @return 签名值
- */
-function getSignature($str, $key) {
-	$signature = "";
-	if (function_exists('hash_hmac')) {
-		$signature = base64_encode(hash_hmac("sha1", $str, $key, true));
-	} else {
-		$blocksize = 64;
-		$hashfunc = 'sha1';
-		if (strlen($key) > $blocksize) {
-			$key = pack('H*', $hashfunc($key));
-		}
-		$key = str_pad($key, $blocksize, chr(0x00));
-		$ipad = str_repeat(chr(0x36), $blocksize);
-		$opad = str_repeat(chr(0x5c), $blocksize);
-		$hmac = pack(
-				'H*', $hashfunc(
-						($key ^ $opad) . pack(
-								'H*', $hashfunc(
-										($key ^ $ipad) . $str
-								)
-						)
-				)
-		);
-		$signature = base64_encode($hmac);
-	}
-	return $signature;
-}
 	
-class AESMcrypt{
-
-
-    /** 
-     * 设置默认的加密key 
-     * @var str 
-     */ 
-    public static $defaultKey = "";   
-
-    /** 
-     * 设置默认加密向量 
-     * @var str 
-     */ 
-    private $iv = 'y6aebpcoNgBT0+h1';
-     
-    /** 
-     * 设置加密算法 
-     * @var str 
-     */ 
-    private $cipher; 
-     
-    /** 
-     * 设置加密模式 
-     * @var str 
-     */ 
-    private $mode; 
-     
-    public function __construct($cipher = MCRYPT_RIJNDAEL_128, $mode = MCRYPT_MODE_CBC){ 
-        $this->cipher = $cipher; 
-        $this->mode = $mode; 
-    } 
-     
-    /** 
-     * 对内容加密，注意此加密方法中先对内容使用padding pkcs7，然后再加密。 
-     * @param str $content    需要加密的内容 
-     * @return str 加密后的密文 
-     */ 
-    public function Encode($content, $key){ 
-        if(empty($content)){ 
-            return null; 
-        } 
-        $srcdata = $content; 
-        $block_size = mcrypt_get_block_size($this->cipher, $this->mode); 
-        $padding_char = $block_size - (strlen($content) % $block_size); 
-        $srcdata .= str_repeat(chr($padding_char),$padding_char); 
-        return mcrypt_encrypt($this->cipher, $key, $srcdata, $this->mode, $this->iv); 
-    }    
-
-    /** 
-     * 对内容解密，注意此加密方法中先对内容解密。再对解密的内容使用padding pkcs7去除特殊字符。 
-     * @param String $content    需要解密的内容 
-     * @return String 解密后的内容 
-     */ 
-    public function Decode($content, $key){ 
-        if(empty($content)){ 
-            return null; 
-        } 
-
-        $content = mcrypt_decrypt($this->cipher, $key, $content, $this->mode, $this->iv); 
-        $block = mcrypt_get_block_size($this->cipher, $this->mode); 
-        $pad = ord($content[($len = strlen($content)) - 1]); 
-        return substr($content, 0, strlen($content) - $pad); 
-    } 
-}
-
-class TokenManagerBase {
-
-	public static function ArrayToString($arr,$split="-") {
-		$str = '';
-		for($i=0; $i<count($arr); $i++) {
-			if ($i != count($arr)-1) {
-				$str .= $arr[$i] . $split;
-			}
-			else {
-				$str .= $arr[$i];
-			}
+	/**
+	*
+	* 创建token，并保存session
+	*
+	*/
+	protected function composeToken($data, $uid, $session=true) {
+		$dataArray = array_values($data);
+		$token = new \Kandouwo\Token\TokenManagerBase();
+		$time = time();
+		$tokenstring = $token->ComposeToken(null, '1.0', $time, '12d5j!df', $dataArray, $this->key);
+		if ($session == true) {
+			Session::put(strval($uid).'_token', $tokenstring);
+			Session::put(strval($uid).'_time', $time);
 		}
-		return $str;
-	}
-	
-	public static function StringToArray($str,$split="-") {
-		$arr = explode($split,$str);
-		return $arr;
+		return $tokenstring;
 	}
 	
 	/**
-	* 解析Token
 	*
-	* $str: base64[签名+扩展字段(版本号)+应用ID+随机初始变量()+加密后的验证信息（应用ID、当前时间、当前IP、用户ID、用户密码哈希）]
-	* $key: 私密钥
-	*
-	* 返回值：
-	* [
-	* 	'signMethod' => string
-	* 	'version' => string
-	* 	'timestamp' => string(距1970 00:00:00 GMT的秒数)
-	* 	'once' => string
-	* 	'data' => 数据（键值数组）
-	* ]
+	* 填充users表的字段信息
 	*
 	*/
-	// 
-	public function ParseToken($tokenString, $key) {
-		$tokenArray = TokenManagerBase::StringToArray($tokenString, '-');
-		if ($tokenArray == null) {
-			return null;
-		}
-		if (count($tokenArray) != 3) {
-			return null;
-		}
-		
-		$token['sign'] = $tokenArray[0];
-		$token['version'] = base64_decode($tokenArray[1]);
-		$token['data'] = $tokenArray[2];
-		
-		if ($token['sign'] != getSignature($tokenArray[1] . '-' . $token['data'], $key)) {
-			$token = null;
-		}
-		else {
-			$encrypter = new AESMcrypt();
-			$token['data'] = $encrypter->Decode(base64_decode($token['data']), $key);
-		}
-		return $token;
+	protected function filldata($data, $input) {
+		//$data['lastlogin_datetime'] = time();
+		if (isset($input['nickname'])) $data['nickname'] = $input['nickname'];
+		if (isset($input['sex'])) $data['sex'] = $input['sex'];
+		if (isset($input['signature'])) $data['signature'] = $unput['signature'];
+		if (isset($input['login_place'])) $data['lastlogin_place'] = $input['login_place'];
+		return $data;
 	}
 	
-	/**
-	* 构造Token
-	*
-	* $signMethod 签名方法
-	* $version Token的版本号
-	* $timestamp 时间戳(距1970 00:00:00 GMT的秒数)
-	* $once 单次值（32位随机字符串）
-	* $data 数据（键值数组）
-	* $key 私密钥
-	*
-	* 返回值：base64转码后的Token字符串
-	*/
-	public function ComposeToken($signMethod, $version, $timestamp, $once, $data, $key) {
-		// 内部信息
-		$data[] = $timestamp;
-		$data[] = $once;
-		
-		$strIn = TokenManagerBase::ArrayToString($data, "\n");
-		
-		// 使用签名方法加密 $arrayIn
-		$encrypter = new AESMcrypt();
-		$data = $encrypter->Encode($strIn, $key);
-		$strOut = base64_encode($version) . '-' . base64_encode($data);
-		$sign = getSignature($strOut, $key);
-		
-		// 返回base64(签+信息)
-		return $sign . '-' . $strOut;
-    }
+	protected function isValidToken($uid, $token) {
+		return (Session::has($uid.'_token') &&
+			Session::has($uid.'_time') &&
+			Session::get($uid.'_token') === $token &&
+			(time() - Session::get($uid.'_time')) < ApiController::$expired_time);
+	}
 }

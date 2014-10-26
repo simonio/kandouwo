@@ -1,4 +1,4 @@
-<?php namespace kandouwo\Database;
+<?php namespace Kandouwo\Database;
 
 class DB {
 	protected $error = null;

@@ -49,3 +49,8 @@ $app = require_once __DIR__.'/bootstrap/start.php';
 */
 
 $app->run();
+
+App::missing(function($exception)
+{
+    return Response::view('errors.missing', array(), 404);
+});
