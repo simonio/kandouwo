@@ -25,4 +25,5 @@ Route::group(array('prefix' => 'api'), function()
 	Route::get('logout', 'ApiController@logout');
 	Route::get('search', 'ApiController@search');
 	Route::get('token_test', 'ApiController@token_test');
+	Route::get('test', 'ApiController@test');
 });

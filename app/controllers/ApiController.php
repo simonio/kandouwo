@@ -24,12 +24,16 @@ array (size=3)
 1413640916
 1234567890123456' (length=62)
 */
- 
+
+use Illuminate\Http\JsonResponse;
+
 class ApiController extends BaseController {
 
-	protected $key = 'nrq!1d5t';
+	protected static $token_key = 'nrq!1d5t';
 	protected static $nickname_prefix = '路人';
-	protected static $expired_time = 1800;
+	protected static $nickname_base = 123456;
+	protected static $token_expired_time = 1800;
+	protected static $kindleRegisterUrl = '';
 
 	/**
 	* 部署数据库
@@ -37,13 +41,17 @@ class ApiController extends BaseController {
 	*/
 	public function install() {
 		if(file_exists(__DIR__.'/../kandouwo/database/install.lock')) {
+			
 			echo('<div>数据库已经部署完毕</div>');
 		} else {
 			echo '正在部署数据库...<br>';
+			
+			$config = Config::get('database.connections')['mysql'];
+			
 			// new \Kandouwo\database\DB()
-			$ret = App::make('\Kandouwo\database\DB')->create('127.0.0.1', 'root', 'jTC2xjnrqFVUd532', 'kandouwo');
+			$ret = App::make('\Kandouwo\Database\DB')->create($config['host'], $config['username'], $config['password'], $config['database']);
 			if ($ret == true) {
-				\Kandouwo\Database\DB::writeFile(__DIR__.'/../kandouwo/database/install.lock', '');
+				\Kandouwo\Database\DB::writeFile(__DIR__.'/../kandouwo/Database/install.lock', '');
 				echo '<br>数据库部署结束。<br>';
 			} else {
 				echo '<br>数据库部署失败。<br>';
@@ -61,19 +69,24 @@ class ApiController extends BaseController {
 		// 必须的参数：email, password, uuid
 		// 可附带参数：mail, nickname, sex, ...
 		if (!Input::has('email') || !Input::has('password') || !Input::has('uuid')) {
-			$ret = array('error' => array('msg'=>'','code'=>-1));
-			return Response::json($ret);
+			return Response::json(array('error' => array('msg'=>'','code'=>-1)));
 		}
 		
 		
 		// 判断是否已存在该用户
 		// 若未存在，则创建新用户，并返回uid、token等相关信息
 		// 否则返回错误信息
-		$model = User::where('email', '=', Input::get('email'))->first();
-		if ($model) {
+		if (User::where('email', '=', Input::get('email'))->first()) {
 			return Response::json(array('error' => array('msg'=>'email已经被注册','code'=>-2)));
 		}
 		
+		$kindle = null;
+		if (Input::has('username')) {
+			$kindle = $this->getKindleInfo(Input::get('username'), Input::get('password'));
+			if ($kindle == null) {
+				return Response::json(array('error' => array('msg'=>'','code'=>-3)));
+			}
+		}
 		
 		$data = Input::only('email','password','uuid');
 		$data['password'] = Hash::make($data['password']);
@@ -81,6 +94,7 @@ class ApiController extends BaseController {
 		$user = null;
 		$errorInfo = array();
 		
+		// 创建用户
 		try {
 			$user = User::create($dataEx);
 		}
@@ -88,23 +102,31 @@ class ApiController extends BaseController {
 			$errorInfo['msg'] = $e->errorInfo[0];
 			$errorInfo['code'] = $e->errorInfo[1];
 		}
-		
 		if (!$user) {
 			return Response::json(array('error' => $errorInfo));
 		}
 
+		// 构造token
 		$tokenstring = $this->composeToken(
 			array('uid'=>$user->getkey(),'password'=>$data['password']),
 			$user->getkey()
 		);
-		$user->update(array('nickname'=>ApiController::$nickname_prefix.strval($user->getkey()+123456)));
+		
+		// 更新用户信息：用户名，k豆
+		$updateData = array('nickname'=>($kindle!=null && isset($kindle['username']) ? $kindle['username'] :
+			ApiController::$nickname_prefix.strval($user->getkey()+ApiController::$nickname_base)));
+		if ($kindle != null && isset($kindle['credit'])) {
+			$updateData['kdou'] = $kindle['credit'];
+		}
+		$user->update($updateData);
 		
 		return Response::json(
 			array('data'=>
 				array('uid'=>$user->getkey(),
 					'nickname'=>$user->nickname,
+					'kdou'=>isset($updateData['kdou']) ? $updateData['kdou'] : 0,
 					'token'=>$tokenstring,
-					'expired'=>ApiController::$expired_time)
+					'expired'=>ApiController::$token_expired_time)
 			)
 		);
 	}
@@ -115,20 +137,20 @@ class ApiController extends BaseController {
 	 * @return response(json)
 	 */
 	public function login() {
-		if (!Input::has('uid') || !Input::has('password') || !Input::has('uuid')) {
+		if (!Input::has('email') || !Input::has('password') || !Input::has('uuid')) {
 			$ret = array('error' => array('msg'=>'','code'=>-1));
 			return Response::json($ret);
 		}
 		
-		$uid = Input::get('uid');
+		$email = Input::get('email');
 		$password = Input::get('password');
 		
-		if (!Auth::validate(array('id' => $uid, 'password' => $password))) {
+		if (!Auth::validate(array('email' => $email, 'password' => $password))) {
 			return Response::json(array('error' => array('msg'=>'','code'=>-2)));
 		}
 
 		$tokenstring = $this->composeToken(
-			array('uid'=>$uid,'password'=>$password), $uid
+			array('email'=>$email,'password'=>$password), $email
 		);
 		
 		return Response::json(array('data' => 
@@ -155,6 +177,25 @@ class ApiController extends BaseController {
 		//return json_encode($tokenArray);
 	}
 	
+	public function test() {
+
+		//echo \Kandouwo\Libraries\CurlHelp::get("www.baidu.com");
+		
+		return Response::json(json_decode(\Kandouwo\Libraries\CurlHelp::post(
+			ApiController::$kindleRegisterUrl,
+			array('username'=>'kandouwo','password'=>'kandouwo'))));
+		
+		//return new JsonResponse(json_decode(\Kandouwo\Libraries\CurlHelp::post(
+		//	ApiController::$kindleRegisterUrl,
+		//	array('username'=>'kandouwo','password'=>'kandouwo'))), 200, array(), 0);
+	}
+	
+	protected function getKindleInfo($username, $password) {
+		return json_decode(\Kandouwo\Libraries\CurlHelp::post(
+			ApiController::$kindleRegisterUrl,
+			array('username'=>$username,'password'=>$password)), true);
+	}
+	
 	/**
 	*
 	* 创建token，并保存session
@@ -164,7 +205,7 @@ class ApiController extends BaseController {
 		$dataArray = array_values($data);
 		$token = new \Kandouwo\Token\TokenManagerBase();
 		$time = time();
-		$tokenstring = $token->ComposeToken(null, '1.0', $time, '12d5j!df', $dataArray, $this->key);
+		$tokenstring = $token->ComposeToken(null, '1.0', $time, '12d5j!df', $dataArray, ApiController::$token_key);
 		if ($session == true) {
 			Session::put(strval($uid).'_token', $tokenstring);
 			Session::put(strval($uid).'_time', $time);
@@ -186,10 +227,15 @@ class ApiController extends BaseController {
 		return $data;
 	}
 	
+	/**
+	*
+	* 判断token是否有效
+	*
+	*/
 	protected function isValidToken($uid, $token) {
 		return (Session::has($uid.'_token') &&
 			Session::has($uid.'_time') &&
 			Session::get($uid.'_token') === $token &&
-			(time() - Session::get($uid.'_time')) < ApiController::$expired_time);
+			(time() - Session::get($uid.'_time')) < ApiController::$token_expired_time);
 	}
 }
