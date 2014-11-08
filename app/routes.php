@@ -11,10 +11,10 @@
 |
 */
 
-Route::get('/', function()
+Route::get('/', array('as'=>'home','uses'=>function()
 {
 	return View::make('hello');
-});
+}));
 
 # ------------------ Api -----------------------------------
 Route::group(array('prefix' => 'api'), function()
@@ -27,3 +27,18 @@ Route::group(array('prefix' => 'api'), function()
 	Route::get('token_test', 'ApiController@token_test');
 	Route::get('test', 'ApiController@test');
 });
+
+# ------------------ default -------------------------------
+Route::get('search', array('as'=>'search', 'uses'=>function(){ return 'search'; }));
+Route::get('login', array('as'=>'login', 'uses'=>'AuthController@login'));
+Route::get('logout', array('as'=>'logout', 'uses'=>'AuthController@logout'));
+Route::post('login-post', array('as'=>'login-post', 'before' => 'csrf', 'uses'=>'AuthController@loginPost'));
+
+# ------------------ Apps ----------------------------------
+Route::get('apps.android', array('as'=>'android', 'uses'=>'UploadController@android'));
+Route::get('apps.ios', array('as'=>'ios', 'uses'=>'UploadController@ios'));
+Route::get('apps', array('as'=>'android', 'uses'=>'UploadController@android'));
+
+Route::post('upload','UploadController@handle');
+Route::get('upload', 'UploadController@handle');
+Route::delete('/', 'UploadController@delete');

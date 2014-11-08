@@ -1,30 +1,5 @@
 <?php
 
-/* 运行结果
-
-备注：
-	token的结构：签名-base64(版本号)-base64(encrypt(data))
-	data中的字段用换行符分割，字段的顺序约定好就行，目前是（用户名，密码，ip，时间戳，once）
-
-data:
-string 'ak_meng@126.com
-123456
-192.168.1.1
-1413640916
-1234567890123456' (length=62)
-构造 Token
-string 'E5NB9yFj7bdS/RKi+Gt7V/FGjkw=-MS4w-Z1h04uhfqEYJDIc0vI8zx9UUfNTtku6YglMO3SgzXcSUTe9+H8RCwUYhwTSfgmxgggrfmBncNDab4WQaA4oWFQ==' (length=122)
-解析 Token
-array (size=3)
-  'sign' => string 'E5NB9yFj7bdS/RKi+Gt7V/FGjkw=' (length=28)
-  'version' => string '1.0' (length=3)
-  'data' => string 'ak_meng@126.com
-123456
-192.168.1.1
-1413640916
-1234567890123456' (length=62)
-*/
-
 use Illuminate\Http\JsonResponse;
 
 class ApiController extends BaseController {
@@ -46,7 +21,8 @@ class ApiController extends BaseController {
 		} else {
 			echo '正在部署数据库...<br>';
 			
-			$config = Config::get('database.connections')['mysql'];
+      $config = Config::get('database.connections');
+			$config = $config['mysql'];
 			
 			// new \Kandouwo\database\DB()
 			$ret = App::make('\Kandouwo\Database\DB')->create($config['host'], $config['username'], $config['password'], $config['database']);
@@ -61,6 +37,12 @@ class ApiController extends BaseController {
 	
 	/**
 	 * 注册.
+	 *
+	 * 备注：
+	 *		kindle人用户注册时，kandouwo不保存其密码和credit数目，仅保存其昵称和Email
+	 *		普通用户注册时，保存其密码
+	 *
+	 *		注册后kdou值均初始为0
 	 *
 	 * @return response(json)
 	 */
@@ -155,7 +137,7 @@ class ApiController extends BaseController {
 		
 		return Response::json(array('data' => 
 			array('token'=>$tokenstring,
-				'expired'=>ApiController::$expired_time)));
+				'expired'=>ApiController::$token_expired_time)));
 	}
 
 	public function token_test() {
