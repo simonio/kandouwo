@@ -26,14 +26,15 @@ class AuthController extends \BaseController {
     $email = Input::get('email');
     $password = Input::get('password');
     $remember = Input::get('remember', false);
+    
 
-    if (Auth::attempt(array('email' => $email, 'password' => $password))) {
+    if (Auth::attempt(array('email' => $email, 'password' => $password), $remember!=false)) {
       return Redirect::to('apps');
     }
     else {
       return Redirect::to('login')
         ->withInput(Input::except('password'))
-        ->withErrors(array('error'=>'用户名或密码错误'));
+        ->withErrors(array('error'=>lang('Invalid username or password')));
     }
   }
   

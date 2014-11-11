@@ -58,7 +58,7 @@
             filesContainer: undefined,
             // By default, files are appended to the files container.
             // Set the following option to true, to prepend files instead:
-            prependFiles: false,
+            prependFiles: true,
             // The expected data type of the upload response, sets the dataType
             // option of the $.ajax upload requests:
             dataType: 'json',
@@ -105,6 +105,7 @@
                 data.process(function () {
                     return $this.fileupload('process', data);
                 }).always(function () {
+                    
                     data.context.each(function (index) {
                         $(this).find('.size').text(
                             that._formatFileSize(data.files[index].size)

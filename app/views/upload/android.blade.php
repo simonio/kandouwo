@@ -6,7 +6,7 @@
 
 @section('content')
   <!-- The file upload form used as target for the file upload widget -->
-  <form id="fileupload" action="" method="POST" enctype="multipart/form-data"><!--//jquery-file-upload.appspot.com/-->
+  <form id="fileupload" action="upload" method="POST" enctype="multipart/form-data"><!--//jquery-file-upload.appspot.com/-->
     <!-- Redirect browsers with JavaScript disabled to the origin page 
     <noscript><input type="hidden" name="redirect" value="https://blueimp.github.io/jQuery-File-Upload/"></noscript>-->
     <!-- The fileupload-buttonbar contains buttons to add/delete files and start/cancel the upload -->
@@ -53,10 +53,10 @@
         <thead>
           <tr>
             <th width="100">日期</th>
-            <th width="240">名称</th>
+            <th width="220">名称</th>
             <th>描述</th>
-            <th width="200">大小</th>
-            <th width="160" style="text-align:right"> </th>
+            <th width="100">大小</th>
+            <th width="120" style="text-align:right"> </th>
           </tr>
         </thead>
       </tbody>

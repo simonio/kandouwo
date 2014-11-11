@@ -1166,6 +1166,7 @@
                 return this._handleFileTreeEntries(entries);
             }
             files = $.makeArray(fileInput.prop('files'));
+            
             if (!files.length) {
                 value = fileInput.prop('value');
                 if (!value) {

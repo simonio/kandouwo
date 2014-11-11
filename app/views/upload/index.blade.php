@@ -1,6 +1,3 @@
-<?php
-?>
-
 <!DOCTYPE HTML>
 <!--
 /*
@@ -50,15 +47,25 @@
 @include('layouts.partials.nav')
 
 <div class="container">
-  <h2>抢鲜APP</h2>
-  
-	<ul class="nav nav-tabs">
-    <li class="{{ (Request::is('apps') || Request::is('apps.android') ? 'active' : '') }}"><a href="{{ URL::route('android') }}">Android</a></li>
-    <li class="{{ (Request::is('apps.ios') ? 'active' : '') }}"><a href="{{ URL::route('ios') }}">IOS</a></li>
-  </ul>
-  
-  <br>
-  @yield('content')
+  <div class="row">
+    <div class="col-md-10" role="main">
+      <h2>抢鲜APP</h2>
+      <ul class="nav nav-tabs">
+        <li class="{{ (Request::is('apps') || Request::is('apps.android') ? 'active' : '') }}"><a href="{{ URL::route('android') }}">Android</a></li>
+        <li class="{{ (Request::is('apps.ios') ? 'active' : '') }}"><a href="{{ URL::route('ios') }}">IOS</a></li>
+      </ul>
+      <br>
+      @yield('content')
+    </div>
+    <div class="col-md-2">
+      @if (isset($qr_code) && isset($background))
+        <div class="side-bar">
+          {{$background}}
+          <p>扫描下载最新APP</p>
+        </div>
+      @endif
+    </div>
+  </div>
 </div>
 
 <!-- The blueimp Gallery widget -->
@@ -97,13 +104,18 @@
 {% for (var i=0, file; file=o.files[i]; i++) { %}
   <tr class="template-upload fade">
     <td width="200">
-      <span class="preview"></span>
+      <!--<span class="preview"></span>-->
+      <div class="datetime">{%=file.datetime%}</div>
     </td>
     <td>
       <p class="name">{%=file.name%}</p>
       <strong class="error text-danger"></strong>
     </td>
-  <td><textarea style="width: 100%;" class="input-xlarge" id="textarea" rows="2"></textarea></td>
+    
+    <td>
+      <textarea style="width: 100%;" class="desc" id="textarea" rows="2" name="desc[]" required>{%=file.desc%}</textarea>
+    </td>
+    
     <td>
       <p class="size">Processing...</p>
       <div class="progress progress-striped active" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><div class="progress-bar progress-bar-success" style="width:0%;"></div></div>
@@ -134,11 +146,14 @@
 {% for (var i=0, file; file=o.files[i]; i++) { %}
   <tr class="template-download fade">
     <td>
+      <!--
       <span class="preview">
         {% if (file.thumbnailUrl) { %}
           <a href="{%=file.url%}" title="{%=file.name%}" download="{%=file.name%}" data-gallery><img src="{%=file.thumbnailUrl%}"></a>
         {% } %}
       </span>
+      -->
+      <div class="datetime">{%=file.datetime%}</div>
     </td>
 
     <td>
@@ -153,7 +168,7 @@
         <div><span class="label label-danger">Error</span> {%=file.error%}</div>
       {% } %}
     </td>
-  <td></td>
+  <td><div class="desc" name="desc[]">{%=file.desc%}</div></td>
   <td>
     <span class="size">{%=o.formatFileSize(file.size)%}</span>
   </td>
@@ -176,7 +191,17 @@
   </tr>
 {% } %}
 </script>
-<script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+
+<script type="text/javascript">
+  function debug (data) {
+    @unless (Config::get('app.debug') != true)
+      console.log(data);
+    @endunless
+    return;
+  }
+</script>
+
+<script src="http://cdn.bootcss.com/jquery/1.11.1/jquery.min.js"></script>
 <!-- The jQuery UI widget factory, can be omitted if jQuery UI is already included -->
 <script src="public/js/vendor/jquery.ui.widget.js"></script>
 <!-- The Templates plugin is included to render the upload/download listings -->
@@ -186,7 +211,7 @@
 <!-- The Canvas to Blob plugin is included for image resizing functionality -->
 <script src="//blueimp.github.io/JavaScript-Canvas-to-Blob/js/canvas-to-blob.min.js"></script>
 <!-- Bootstrap JS is not required, but included for the responsive demo navigation -->
-<script src="//netdna.bootstrapcdn.com/bootstrap/3.2.0/js/bootstrap.min.js"></script>
+<script src="http://cdn.bootcss.com/bootstrap/3.3.0/js/bootstrap.min.js"></script>
 <!-- blueimp Gallery script -->
 <script src="//blueimp.github.io/Gallery/js/jquery.blueimp-gallery.min.js"></script>
 <!-- The Iframe Transport is required for browsers without support for XHR file uploads -->
