@@ -9,9 +9,9 @@
         email 邮箱
         password 密码
         uuid 设备id
-        username kindle人的用户名(可选，带此参数时，password参数即为kindle用户的密码，否则为新用户的密码)
-        kindleren kindle人账号申请注册（需同时提供参数：username，password）
-        kidnleren_confirm kindle人账号确认注册（需同时提供参数：username）
+        username kindle人的用户名(可选)
+        kindleren kindle人账号申请注册（可选，需同时提供参数：username，password）
+        kidnleren_confirm kindle人账号确认注册（可选，需同时提供参数：username）
 * 返回：json
 
         成功申请kindle人账号注册：
