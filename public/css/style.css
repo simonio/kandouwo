@@ -1,14 +1,3 @@
-html,
-body {
-  /* for sticky footer */
-  height: 100%;
-
-  font-size: 14px;
-  color: #333333;
-  font-family: "Heiti SC Light","Helvetica Neue",Verdana,微软雅黑,Arial,sans-serif;
-  background: #FFFFFF;
-}
-
 .btn {
   border-radius: 2px;
   font-size: 14px;

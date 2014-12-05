@@ -6,7 +6,6 @@
     <meta charset="utf-8">
     <meta name="description" content="Kandouwo App Files">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    @yield('meta')
     <!-- Force latest IE rendering engine or ChromeFrame if installed -->
     <!--[if IE]>
     <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
@@ -17,14 +16,10 @@
       @show
     </title>
     <link href="http://cdn.bootcss.com/bootstrap/3.3.1/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="../public/css/default.css">
-    <link rel="apple-touch-icon" href="../apple-touch-icon.png">
-    <link rel="icon" href="../favicon.ico">
     @yield('styles')
   </head>
 
   <body>
-    @include('layouts.partials.header')
     
     @yield('content_before')
     <div class="container">
@@ -32,17 +27,6 @@
     </div>
     @yield('content_after')
     
-    <footer class="bs-docs-footer" role="contentinfo">
-      <div class="container">
-        <ul class="bs-docs-footer-links muted">
-          <li><a href="http://kindleren.com/forum.php" target="_blank">kindle人</a></li>
-          <li>&middot;</li>
-          <li><a href="http://kdouren.taobao.com/" target="_blank">kindle人淘宝店</a></li>
-          <li>&middot;</li>
-          <li><a href="http://baike.kindleren.com/"  target="_blank">Kindle百科</a></li>
-        </ul>
-      </div>
-    </footer>
 
     <script src="http://cdn.bootcss.com/jquery/1.11.1/jquery.js"></script>
     <!-- Bootstrap JS is not required, but included for the responsive demo navigation -->

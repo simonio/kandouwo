@@ -11,28 +11,28 @@
 |
 */
 
-Route::get('/', array('as'=>'home','uses'=>function()
-{
-	return View::make('hello');
-}));
+Route::get('/', array('as'=>'home','uses'=>'HomeController@home'));
 
 # ------------------ Api -----------------------------------
 Route::group(array('prefix' => 'api'), function()
 {
 	Route::get('install', 'ApiController@install');
 	Route::get('register', 'ApiController@register');
-    Route::get('login', 'ApiController@login');
+  Route::get('login', 'ApiController@login');
 	Route::get('logout', 'ApiController@logout');
 	Route::get('search', 'ApiController@search');
 	Route::get('token_test', 'ApiController@token_test');
 	Route::get('test', 'ApiController@test');
 });
 
+
 # ------------------ default -------------------------------
-Route::get('search', array('as'=>'search', 'uses'=>function(){ return 'search'; }));
 Route::get('login', array('as'=>'login', 'uses'=>'AuthController@login'));
 Route::get('logout', array('as'=>'logout', 'uses'=>'AuthController@logout'));
 Route::post('login-post', array('as'=>'login-post', 'before' => 'csrf', 'uses'=>'AuthController@loginPost'));
+Route::get('search', array('as'=>'search', 'uses'=>'HomeController@search'));
+Route::get('about', array('as'=>'about', 'uses'=>'HomeController@about'));
+Route::get('docs', array('as'=>'api-docs', 'uses'=>'HomeController@docs'));
 
 # ------------------ Apps ----------------------------------
 Route::get('apps.android', array('as'=>'android', 'uses'=>'UploadController@android'));

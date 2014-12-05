@@ -1,7 +1,7 @@
 <?php
 
 return array(
-    'WebSiteName' => '看豆窝',
+    'Kandouwo' => '看豆窝',
     'Topics' => '社区',
     'Wiki' => 'Wiki',
     'Users' => '会员',
@@ -10,6 +10,8 @@ return array(
     'Login' => '登 录',
     'Logout' => '退出',
     'Apps' => '看豆窝-抢鲜APP',
+    'App' => '应用',
+    'Api Docs'=> '文档',
     'New Topic' => '发 布 新 帖',
     'Links' => '友情社区',
     'Same Node Topics' => '节点下其他主题',

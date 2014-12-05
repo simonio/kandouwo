@@ -1,4 +1,9 @@
-@extends('layouts.default')
+@extends('layouts.default_min')
+
+@section('styles')
+  <link rel="stylesheet" href="../public/css/default.css">
+  <link rel="stylesheet" href="../public/css/style.css">
+@stop
 
 @section('content')
   {{ Form::open(
@@ -10,8 +15,8 @@
       'role'=>'form')
     )
   }}
-    <h4 class="form-signin-heading">{{ lang('Please sign in') }}</h4>
-    <hr>
+    <span style="font-size: 72px; color: #444;">{{ lang('Kandouwo') }}</span>
+    <p></p>
     
     <input type="email" name="email" class="form-control" value="{{ Input::old('email') }}" placeholder="{{lang('Email') }}（如：demo@kandouwo.com）" required autofocus>
     <br>

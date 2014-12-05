@@ -2,6 +2,10 @@
 
 use Illuminate\Http\JsonResponse;
 
+/*
+  
+*/
+
 class ApiController extends BaseController {
 
 	protected static $token_key = 'nrq!1d5t';
@@ -36,7 +40,7 @@ class ApiController extends BaseController {
 	}
 	
 	/**
-	 * 注册.
+	 * 注册看豆窝账号.
 	 *
 	 * 备注：
 	 *		kindle人用户注册时，kandouwo不保存其密码和credit数目，仅保存其昵称和Email
@@ -48,37 +52,61 @@ class ApiController extends BaseController {
 	 */
 	public function register() {
 	
+    // 申请kindle人账号注册
+    if (Input::has('kindleren')) {
+      if (!$this->isValidInput(array('username','password'))) {
+        return $this->errorResponse('Invalid inputs.', -1);
+      }
+      
+      $kindle = $this->getKindleInfo(Input::get('username'), Input::get('password'));
+			if ($kindle == null) {
+				return $this->errorResponse('Invalid kindleren account or password.', -2);
+			}
+      
+      return Response::json(array('data' => array('login'=>1)));
+    }
+    
+    // 确认kindle人账号注册
+    $kindleren_confirm = Input::has('kindleren_confirm') ? true : false;
+    $kindle = null;
+    if ($kindleren_confirm == true) {
+      if (!Input::has('username')) {
+        return $this->errorResponse('Invalid kindleren confirm info.', -3);
+      }
+      
+      $kindle = $this->getKindleInfo(Input::get('username'), Input::get('password'));
+			if ($kindle == null) {
+				return $this->errorResponse('Invalid kindleren account or password.', -2);
+			}
+    }
+
+    
 		// 必须的参数：email, password, uuid
-		// 可附带参数：mail, nickname, sex, ...
-		if (!Input::has('email') || !Input::has('password') || !Input::has('uuid')) {
-			return Response::json(array('error' => array('msg'=>'','code'=>-1)));
+    // 可选的参数：usrname
+		if (!$this->isValidInput(array('email','password','uuid'))) {
+			return $this->errorResponse('Invalid inputs.', -4);
 		}
-		
 		
 		// 判断是否已存在该用户
 		// 若未存在，则创建新用户，并返回uid、token等相关信息
 		// 否则返回错误信息
 		if (User::where('email', '=', Input::get('email'))->first()) {
-			return Response::json(array('error' => array('msg'=>'email已经被注册','code'=>-2)));
-		}
-		
-		$kindle = null;
-		if (Input::has('username')) {
-			$kindle = $this->getKindleInfo(Input::get('username'), Input::get('password'));
-			if ($kindle == null) {
-				return Response::json(array('error' => array('msg'=>'','code'=>-3)));
-			}
+      return $this->errorResponse('Email has been registered.', -5);
 		}
 		
 		$data = Input::only('email','password','uuid');
 		$data['password'] = Hash::make($data['password']);
-		$dataEx = $this->filldata($data, Input::all());
 		$user = null;
 		$errorInfo = array();
+    
+    if ($kindleren_confirm == true) {
+      $data['kindleren'] = true;
+      $data['nickname'] = Input::get('username');
+    }
 		
 		// 创建用户
 		try {
-			$user = User::create($dataEx);
+			$user = User::create($data);
 		}
 		catch (Illuminate\Database\QueryException $e) {
 			$errorInfo['msg'] = $e->errorInfo[0];
@@ -94,19 +122,11 @@ class ApiController extends BaseController {
 			$user->getkey()
 		);
 		
-		// 更新用户信息：用户名，k豆
-		$updateData = array('nickname'=>($kindle!=null && isset($kindle['username']) ? $kindle['username'] :
-			ApiController::$nickname_prefix.strval($user->getkey()+ApiController::$nickname_base)));
-		if ($kindle != null && isset($kindle['credit'])) {
-			$updateData['kdou'] = $kindle['credit'];
-		}
-		$user->update($updateData);
-		
 		return Response::json(
 			array('data'=>
 				array('uid'=>$user->getkey(),
 					'nickname'=>$user->nickname,
-					'kdou'=>isset($updateData['kdou']) ? $updateData['kdou'] : 0,
+          'kindle_dou'=>($kindle != null && isset($kindle['credit'])) ? $kindle['credit'] : 0,
 					'token'=>$tokenstring,
 					'expired'=>ApiController::$token_expired_time)
 			)
@@ -119,25 +139,81 @@ class ApiController extends BaseController {
 	 * @return response(json)
 	 */
 	public function login() {
-		if (!Input::has('email') || !Input::has('password') || !Input::has('uuid')) {
-			$ret = array('error' => array('msg'=>'','code'=>-1));
-			return Response::json($ret);
+  
+    // 输入：手机号|邮箱，密码，uuid
+    // 根据账号的类型进行验证：
+    //    纯数字的账号名验证为手机号的kandouwo登录
+    //    符合邮箱命名规范的验证为普通kandouwo账号
+    
+    if (!$this->isValidInput(array('account','password','uuid'))) {
+      return $this->errorResponse('Invalid inputs.', -1);
 		}
 		
-		$email = Input::get('email');
+		$account = Input::get('account');
 		$password = Input::get('password');
-		
-		if (!Auth::validate(array('email' => $email, 'password' => $password))) {
-			return Response::json(array('error' => array('msg'=>'','code'=>-2)));
-		}
+    $uuid = Input::get('uuid');
+    
+    $kindle = null;
+    $user = null;
+    
+    // 判断是否已经登录
+    if ($this->hasLogin($account, $password, $uuid)) {
+      return $this->errorResponse('Has login.', 0);
+    }
+    
+    // 邮箱登录验证
+    if (filter_var($account, FILTER_VALIDATE_EMAIL)) { 
+      // 先验证普通kandouwo用户
+      // 不成功则验证kindle人用户
+      if (!Auth::validate(array('email' => $account, 'password' => $password))) {
+        $user = User::where('email', '=', $account)->where('kindleren','=','true')->first();
+        $kindle = $this->getKindleInfo($user->nickname, $user->password);
+        if ($kindle == null) {
+          return $this->errorResponse('Invalid email or password.', -2);
+        }
+      }
+      else {
+        $user = User::where('email', '=', $account)->first();
+      }
+    }
+    else {
+      return $this->errorResponse('Invalid Email format.', -3);
+    }
+    // 手机号登录验证
+    //else if (preg_match("/^1[34578]\d{9}$/", $account)) { 
+    //  if (!Auth::validate(array('phone' => $account, 'password' => $password))) {
+    //    return $this->errorResponse('Invalid phone number or password.', -2);
+    //  }
+    //  $user = User::where('phone', '=', $account)->first();
+    //}
 
+    // 生成token
 		$tokenstring = $this->composeToken(
-			array('email'=>$email,'password'=>$password), $email
+			array('account'=>$account,'password'=>$password,'uuid'=>$uuid), $account
 		);
 		
-		return Response::json(array('data' => 
-			array('token'=>$tokenstring,
-				'expired'=>ApiController::$token_expired_time)));
+		return Response::json(array(
+      'data' => 
+        array(
+          'token'=>$tokenstring,
+          'expired'=>ApiController::$token_expired_time,
+          'uid'=>$user->id,
+          'nickname'=>$user->nickname,
+          'sex'=>$user->sex,
+          'signature'=>$user->signature,
+          'kdou'=>$user->kdou,
+          'kindle_dou'=>isset($kindle['credit']) ? $kindle['credit'] : 0,
+          'thumbnail'=>$user->thumbnail,
+          'thumbnail_big'=>$user->thumbnail_big,
+          'attend_date'=>$user->attend_date,
+          'lastlogin_place'=>$user->lastlogin_place,
+          'readed_book_num'=>$user->readed_book_num,
+          'download_book_num'=>$user->download_book_num,
+          'comment_num'=>$user->comment_num,
+          'kindleren'=>$user->kindleren
+        )
+      )
+    );
 	}
 
 	public function token_test() {
@@ -172,12 +248,40 @@ class ApiController extends BaseController {
 		//	array('username'=>'kandouwo','password'=>'kandouwo'))), 200, array(), 0);
 	}
 	
-	protected function getKindleInfo($username, $password) {
+  
+  /**
+	* 获取kindle人的登录信息
+  *
+  * @return json|null
+  */
+  protected function getKindleInfo($username, $password) {
 		return json_decode(\Kandouwo\Libraries\CurlHelp::post(
 			ApiController::$kindleRegisterUrl,
 			array('username'=>$username,'password'=>$password)), true);
 	}
 	
+  /**
+	* 判断用户是否已经登录
+  *
+  * @return boolean
+  */
+  protected function hasLogin($account,$password,$uuid) {
+    return false;
+  }
+  
+  protected function errorResponse($msg, $code) {
+    return Response::json(array('error' => array('msg'=>$msg,'code'=>$code)));
+  }
+  
+  protected function isValidInput($param_array) {
+    foreach ($param_array as $value) {
+      if (!Input::has($value) || Input::get($value) === '') {
+        return false;
+      }
+    }
+    return true;
+  }
+  
 	/**
 	*
 	* 创建token，并保存session

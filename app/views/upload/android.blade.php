@@ -1,10 +1,10 @@
-@extends('upload.index')
+@extends('upload.default_upload')
 
 @section('title')
-{{ lang('Apps') }}
+{{lang('Apps')}}
 @stop
 
-@section('content')
+@section('files')
   <!-- The file upload form used as target for the file upload widget -->
   <form id="fileupload" action="upload" method="POST" enctype="multipart/form-data"><!--//jquery-file-upload.appspot.com/-->
     <!-- Redirect browsers with JavaScript disabled to the origin page 

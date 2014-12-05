@@ -1,11 +1,11 @@
-@extends('upload.index')
+@extends('upload.default_upload')
 
 @section('title')
 {{ lang('Apps') }}
 @stop
 
 
-@section('content')
+@section('files')
   
   @if (Auth::check())
     <form id="fileupload" action="" method="POST" enctype="multipart/form-data"><!--//jquery-file-upload.appspot.com/-->

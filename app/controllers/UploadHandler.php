@@ -42,7 +42,7 @@ class UploadHandler
       'param_name' => 'files',
       // Set the following option to 'POST', if your server does not support
       // DELETE requests. This is a parameter sent to the client:
-      'delete_type' => 'DELETE',
+      'delete_type' => 'POST',
       'access_control_allow_origin' => '*',
       'access_control_allow_credentials' => false,
       'access_control_allow_methods' => array(
@@ -238,7 +238,7 @@ class UploadHandler
   
   protected function get_desc_file_path($filename)
   {
-    $desc_file_name = (strpos($filename, '.') === false) ? $filename . '_desc' : substr($filename, 0, strpos($filename, '.')) . '_desc';
+    $desc_file_name = (strpos($filename, '.') === false) ? $filename . '_desc' : substr($filename, 0, strrpos($filename, '.')) . '_desc';
     $file_dir       = dirname($this->get_upload_path($filename));
     $file_dir       = substr($file_dir, 0, strrpos($file_dir, '/')) . '/desc';
     if (!is_dir($file_dir)) {
@@ -317,6 +317,7 @@ class UploadHandler
           }
         }
       }
+      
       $this->set_additional_file_properties($file);
       return $file;
     }
@@ -1216,6 +1217,7 @@ class UploadHandler
       $response = array(
         $this->options['param_name'] => $this->get_file_objects()
       );
+      
       // 根据修改日期排序
       if ($sort === 'asc') {
         usort($response[$this->options['param_name']], 'sort_files_asc');
@@ -1245,12 +1247,27 @@ class UploadHandler
       // $_FILES is a multi-dimensional array:
       foreach ($upload['tmp_name'] as $index => $value) {
         
-        $files[] = $this->handle_file_upload($upload['tmp_name'][$index], $file_name ? $file_name : $upload['name'][$index], $_REQUEST['desc'][$index], $size ? $size : $upload['size'][$index], $upload['type'][$index], $upload['error'][$index], $index, $content_range);
+        $files[] = $this->handle_file_upload(
+          $upload['tmp_name'][$index], 
+          $file_name ? $file_name : $upload['name'][$index], 
+          $_REQUEST['desc'][$index], $size ? $size : $upload['size'][$index], 
+          $upload['type'][$index], 
+          $upload['error'][$index], 
+          $index, 
+          $content_range);
       }
     } else {
       // param_name is a single object identifier like "file",
       // $_FILES is a one-dimensional array:
-      $files[] = $this->handle_file_upload(isset($upload['tmp_name']) ? $upload['tmp_name'] : null, $file_name ? $file_name : (isset($upload['name']) ? $upload['name'] : null), $_REQUEST['desc'][$index], $size ? $size : (isset($upload['size']) ? $upload['size'] : $this->get_server_var('CONTENT_LENGTH')), isset($upload['type']) ? $upload['type'] : $this->get_server_var('CONTENT_TYPE'), isset($upload['error']) ? $upload['error'] : null, null, $content_range);
+      $files[] = $this->handle_file_upload(
+        isset($upload['tmp_name']) ? $upload['tmp_name'] : null, 
+        $file_name ? $file_name : (isset($upload['name']) ? $upload['name'] : null), 
+        $_REQUEST['desc'], 
+        $size ? $size : (isset($upload['size']) ? $upload['size'] : $this->get_server_var('CONTENT_LENGTH')), 
+        isset($upload['type']) ? $upload['type'] : $this->get_server_var('CONTENT_TYPE'), 
+        isset($upload['error']) ? $upload['error'] : null, 
+        null, 
+        $content_range);
     }
     return $this->generate_response(array(
       $this->options['param_name'] => $files

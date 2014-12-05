@@ -2,7 +2,7 @@
   <div class="container">
   
     <div class="navbar-header">
-      <a href="/" class="navbar-brand">{{lang('WebSiteName')}}</a>
+      <a href="/" class="navbar-brand">{{ lang('WebSiteName') }}</a>
     </div>
     
     <div id="top-navbar-collapse" class="navbar-collapse">
