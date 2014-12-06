@@ -45,7 +45,6 @@
     </footer>
 
     <script src="http://cdn.bootcss.com/jquery/1.11.1/jquery.js"></script>
-    <!-- Bootstrap JS is not required, but included for the responsive demo navigation -->
     <script src="http://cdn.bootcss.com/bootstrap/3.3.1/js/bootstrap.min.js"></script>
     <!-- IE emulate mode warning -->
     <script src="../public/js/ie-emulation-modes-warning.js"></script>

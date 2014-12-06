@@ -62,8 +62,7 @@ class ApiController extends BaseController {
 			if ($kindle == null) {
 				return $this->errorResponse('Invalid kindleren account or password.', -2);
 			}
-      
-      return Response::json(array('data' => array('login'=>1)));
+      return $this->successResponse();
     }
     
     // 确认kindle人账号注册
@@ -122,15 +121,12 @@ class ApiController extends BaseController {
 			$user->getkey()
 		);
 		
-		return Response::json(
-			array('data'=>
-				array('uid'=>$user->getkey(),
+    return $this->successResponse(
+      array('uid'=>$user->getkey(),
 					'nickname'=>$user->nickname,
           'kindle_dou'=>($kindle != null && isset($kindle['credit'])) ? $kindle['credit'] : 0,
 					'token'=>$tokenstring,
-					'expired'=>ApiController::$token_expired_time)
-			)
-		);
+					'expired'=>ApiController::$token_expired_time));
 	}
 	
 	/**
@@ -192,30 +188,55 @@ class ApiController extends BaseController {
 			array('account'=>$account,'password'=>$password,'uuid'=>$uuid), $account
 		);
 		
-		return Response::json(array(
-      'data' => 
-        array(
-          'token'=>$tokenstring,
-          'expired'=>ApiController::$token_expired_time,
-          'uid'=>$user->id,
-          'nickname'=>$user->nickname,
-          'sex'=>$user->sex,
-          'signature'=>$user->signature,
-          'kdou'=>$user->kdou,
-          'kindle_dou'=>isset($kindle['credit']) ? $kindle['credit'] : 0,
-          'thumbnail'=>$user->thumbnail,
-          'thumbnail_big'=>$user->thumbnail_big,
-          'attend_date'=>$user->attend_date,
-          'lastlogin_place'=>$user->lastlogin_place,
-          'readed_book_num'=>$user->readed_book_num,
-          'download_book_num'=>$user->download_book_num,
-          'comment_num'=>$user->comment_num,
-          'kindleren'=>$user->kindleren
-        )
-      )
-    );
+    return $this->successResponse(
+      array(
+        'token'=>$tokenstring,
+        'expired'=>ApiController::$token_expired_time,
+        'uid'=>$user->id,
+        'nickname'=>$user->nickname,
+        'sex'=>$user->sex,
+        'signature'=>$user->signature,
+        'kdou'=>$user->kdou,
+        'kindle_dou'=>isset($kindle['credit']) ? $kindle['credit'] : 0,
+        'thumbnail'=>$user->thumbnail,
+        'thumbnail_big'=>$user->thumbnail_big,
+        'attend_date'=>$user->attend_date,
+        'lastlogin_place'=>$user->lastlogin_place,
+        'readed_book_num'=>$user->readed_book_num,
+        'download_book_num'=>$user->download_book_num,
+        'comment_num'=>$user->comment_num,
+        'kindleren'=>$user->kindleren));
 	}
 
+  /**
+  * 反馈意见.
+  * Token，用户id，Ip，手机号，手机型号，系统版本，应用版本，反馈意见
+  *
+  */
+  public function proposal() {
+    if (!$this->isValidInput(array('token','uid','ip','phone_num','phone_model',
+      'sys_version','app_version','context'))) {
+      return $this->errorResponse('Invalid inputs.', -1);
+    }
+    
+    if (!$this->isValidToken(Input::get('uid'), Input::get('token'))) {
+      return $this->errorResponse('Invalid tokens.', -2);
+    }
+    
+    $data = Input::only('uid','ip','phone_num','phone_model',
+      'sys_version','app_version','context');
+      
+    $data['timestamp'] = date("Y-m-d H:i:s");
+      
+    $proposal = Proposal::create($data);
+    if ($proposal != null) {
+      return $this->successResponse();
+    }
+    else {
+      return $this->errorResponse('Error in store proposal.', -3);
+    }
+  }
+  
 	public function token_test() {
 		if (!Input::has('t') || !Input::has('o')) {
 			$ret = array('error'=>"lack of param: 't' or 'o'");
@@ -269,8 +290,15 @@ class ApiController extends BaseController {
     return false;
   }
   
+  protected function successResponse($data_array=null) {
+    if ($data_array == null) {
+      return Response::json(array('success'=>1));
+    }
+    return Response::json(array('success'=>1, 'data'=> $data_array));
+  }
+  
   protected function errorResponse($msg, $code) {
-    return Response::json(array('error' => array('msg'=>$msg,'code'=>$code)));
+    return Response::json(array('success'=>0, 'data' => array('msg'=>$msg,'code'=>$code)));
   }
   
   protected function isValidInput($param_array) {

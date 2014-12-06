@@ -49,35 +49,35 @@ kidnleren_confirm kindle人账号确认注册（需同时提供参数：username
             <div class="highlight" >
               <pre><code>成功申请kindle人账号注册：
 {
-    "data": {
-        "login": 1
-    }
+  "success": 1
 }
 成功注册：
 {
-    "data": {
-        "uid": 34,
-        "nickname": "路人123490",
-        "kindle_dou": 240, // 确认kindle人账号注册时有用（kindle人的k豆值）
-        "token": "6Bxuk0F3FOg9d6YUTIISIl5xPY0=-MS4w-z...",
-        "expired": 1800
-    }
+  "success": 1,
+  "data": {
+    "uid": 34,
+    "nickname": "路人123490",
+    "kindle_dou": 240, // 确认kindle人账号注册时有用（kindle人的k豆值）
+    "token": "6Bxuk0F3FOg9d6YUTIISIl5xPY0=-MS4w-z...",
+    "expired": 1800
+  }
 }
 失败:
 {
-    "error": {
-        "msg": 'Email has been registered.',
-        "code": 1800
-    }
+  "success": 0,
+  "data": {
+    "msg": 'Email has been registered.',
+    "code": 1800
+  }
 }</code></pre>
             </div>
             
             <li>示例：</li>
             
             <div class="highlight" >
-              <pre><code>普通账号注册：/api/register?email=simonio@163.com&password=123456&uuid=hdjghur45hj
-申请kindle人账号注册：/api/register?kindleren=true&username=kandouwo&password=kandouwo
-确认kindle人账号注册：/api/register?kindleren_confirm=true&username=kandouwo&password=kandouwo&email=simonio1024@163.com&&uuid=123</code></pre>
+              <pre><code>普通账号注册：/api/register?email=simonio@163.com&amp;password=123456&amp;uuid=hdjghur45hj
+申请kindle人账号注册：/api/register?kindleren=true&amp;username=kandouwo&amp;password=kandouwo
+确认kindle人账号注册：/api/register?kindleren_confirm=true&amp;username=kandouwo&amp;password=kandouwo&amp;email=simonio1024@163.com&amp;uuid=123</code></pre>
             </div>
             
             <li>错误码：</li>
@@ -101,47 +101,49 @@ kidnleren_confirm kindle人账号确认注册（需同时提供参数：username
             
             <div class="highlight" >
               <pre><code>account 邮箱/手机号
-  password 密码
-  uuid 设备id</code></pre>
+password 密码
+uuid 设备id</code></pre>
             </div>
             
             <li>返回：json</li>
             
             <div class="highlight" >
-              <pre><code>成功登录：
+              <pre><code>登录成功：
 {
-    "data": {
-        "uid": 34,
-        "nickname": "路人123490",
-        "sex": 男,
-        "signature": "",
-        "thumbnail": "",
-        "thumbnail_big": "",
-        "attend_date": "",
-        "lastlogin_place": "",
-        "readed_book_num": "",
-        "download_book_num": "",
-        "comment_num": "",
-        "kindleren": "true", // kindle人账号用户为true，否则为false
-        "kdou": 240, // 看豆窝的k豆
-        "kindle_dou": 0, // kindle人的k豆
-        "token": "6Bxuk0F3FOg9d6YUTIISIl5xPY0=-MS4w-z...",
-        "expired": 1800
-    }
+  "success": 1,
+  "data": {
+    "uid": 34,
+    "nickname": "路人123490",
+    "sex": 男,
+    "signature": "",
+    "thumbnail": "",
+    "thumbnail_big": "",
+    "attend_date": "",
+    "lastlogin_place": "",
+    "readed_book_num": "",
+    "download_book_num": "",
+    "comment_num": "",
+    "kindleren": "true", // kindle人账号用户为true，否则为false
+    "kdou": 240, // 看豆窝的k豆
+    "kindle_dou": 0, // kindle人的k豆
+    "token": "6Bxuk0F3FOg9d6YUTIISIl5xPY0=-MS4w-z...",
+    "expired": 1800
+  }
 }
-失败
+登录失败：
 {
-    "error": {
-        "msg": 'Invalid email or password.',
-        "code": 1800
-    }
+  "success": 0,
+  "data": {
+    "msg": 'Invalid email or password.',
+    "code": -1
+  }
 }</code></pre>
             </div>
             
             <li>示例：</li>
             
             <div class="highlight" >
-              <pre><code>/api/login?email=simonio@163.com&password=123456&uuid=hdjghur45hj</code></pre>
+              <pre><code>/api/login?email=simonio@163.com&amp;password=123456&amp;uuid=hdjghur45hj</code></pre>
             </div>
             
             <li>错误码：</li>
@@ -151,6 +153,57 @@ kidnleren_confirm kindle人账号确认注册（需同时提供参数：username
  0：已经登录
 -2：用户名或密码错误
 -3：邮箱格式错误</code></pre>
+            </div>
+          </ul>
+          
+          <!-- 提交建议-->
+          <h2 id="api-proposal">提交建议</h2>
+          <ul>
+            <li>HTTP：POST</li>
+            <li>认证：token</li>
+            <li>URI：/api/proposal</li>
+            <li>参数：</li>
+            
+            <div class="highlight" >
+              <pre><code>uid 用户ID
+ip ip地址
+phone_num 手机号
+phone_model 手机型号
+sys_version 系统版本
+app_version 应用版本
+context 意见内容</code></pre>
+            </div>
+            
+            <li>返回：json</li>
+            
+            <div class="highlight" >
+              <pre><code>提交成功：
+{
+  "success": 1
+}
+提交失败：
+{
+  "success": 0,
+  "data": {
+    "msg": 'Invalid token.',
+    "code": -1
+  }
+}</code></pre>
+            </div>
+            
+            <li>示例：</li>
+            
+            <div class="highlight" >
+              <pre><code>/api/proposal?token=sdhk4h54j...&amp;uid=344&amp;ip=102.222.123.10&amp;phone_num=18611111111&amp;phone_model=xiaomi&amp;sys_version=android4.1&amp;app_version=1.0&amp;context=我醉了</code></pre>
+            </div>
+            
+            <li>错误码：</li>
+            
+            <div class="highlight" >
+              <pre><code>-1：参数错误
+-2：令牌无效
+-3：数据保存出错
+-4：提交过于频繁</code></pre>
             </div>
           </ul>
           
@@ -166,6 +219,7 @@ kidnleren_confirm kindle人账号确认注册（需同时提供参数：username
           <ul class="nav bs-docs-sidenav">
             <li><a href="#api-register">注册</a></li>
             <li><a href="#api-login">登录</a></li>
+            <li><a href="#api-proposal">提交建议</a></li>
             @yield('docs-nav')
             <!--
             <li>

@@ -17,12 +17,13 @@ Route::get('/', array('as'=>'home','uses'=>'HomeController@home'));
 Route::group(array('prefix' => 'api'), function()
 {
 	Route::get('install', 'ApiController@install');
-	Route::get('register', 'ApiController@register');
-  Route::get('login', 'ApiController@login');
-	Route::get('logout', 'ApiController@logout');
-	Route::get('search', 'ApiController@search');
-	Route::get('token_test', 'ApiController@token_test');
+  Route::get('search', 'ApiController@search');
+  Route::get('token_test', 'ApiController@token_test');
 	Route::get('test', 'ApiController@test');
+	Route::post('register', 'ApiController@register');
+  Route::post('login', 'ApiController@login');
+	Route::post('logout', 'ApiController@logout');
+  Route::post('proposal', 'ApiController@proposal');
 });
 
 
