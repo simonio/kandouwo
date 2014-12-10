@@ -8,7 +8,7 @@
         <span class="icon-bar"></span>
         <span class="icon-bar"></span>
       </button>
-      <a href="{{ URL::route('home') }}" class="navbar-brand">{{ lang('Kandouwo') }}</a>
+      <a href="{{ URL::route('home') }}" class="navbar-brand" style="padding-top: 4px;"><img src="../public/img/kandouwo.png" width="42" height="42"></img></a>
     </div>
     <nav class="collapse navbar-collapse bs-navbar-collapse" role="navigation">
       <ul class="nav navbar-nav">

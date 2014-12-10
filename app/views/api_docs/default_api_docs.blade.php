@@ -67,7 +67,7 @@ kidnleren_confirm kindle人账号确认注册（需同时提供参数：username
   "success": 0,
   "data": {
     "msg": 'Email has been registered.',
-    "code": 1800
+    "code": -1001
   }
 }</code></pre>
             </div>
@@ -83,15 +83,15 @@ kidnleren_confirm kindle人账号确认注册（需同时提供参数：username
             <li>错误码：</li>
             
             <div class="highlight" >
-              <pre><code>-1：申请kindle人账号注册的参数错误
--2：无效的kindle人用户名或密码
--3：确认kindle人账号注册的参数错误
--4：注册参数错误
--5：邮箱已经被注册</code></pre>
+              <pre><code>-1001：申请kindle人账号注册的参数错误
+-1002：确认kindle人账号注册的参数错误
+-1003：无效的kindle人用户名或密码
+-1004：注册参数错误
+-1005：邮箱已经被注册</code></pre>
             </div>
           </ul>
           
-          <!-- 登录-->
+          <!-- 登录 -->
           <h2 id="api-login">登录</h2>
           <ul>
             <li>HTTP：POST</li>
@@ -149,14 +149,14 @@ uuid 设备id</code></pre>
             <li>错误码：</li>
             
             <div class="highlight" >
-              <pre><code>-1：参数错误
- 0：已经登录
--2：用户名或密码错误
--3：邮箱格式错误</code></pre>
+              <pre><code>-1001：参数错误
+-1002：已经登录
+-1003：用户名或密码错误
+-1004：邮箱格式错误</code></pre>
             </div>
           </ul>
           
-          <!-- 提交建议-->
+          <!-- 提交建议 -->
           <h2 id="api-proposal">提交建议</h2>
           <ul>
             <li>HTTP：POST</li>
@@ -200,10 +200,60 @@ context 意见内容</code></pre>
             <li>错误码：</li>
             
             <div class="highlight" >
-              <pre><code>-1：参数错误
+              <pre><code>-1001：参数错误
+-1002：数据保存出错
+-1003：提交过于频繁</code></pre>
+            </div>
+          </ul>
+          
+          
+          <!-- 签到 -->
+          <h2 id="api-sign_award">签到</h2>
+          <ul>
+            <li>HTTP：POST</li>
+            <li>认证：token</li>
+            <li>URI：/api/sign_award</li>
+            <li>参数：</li>
+            
+            <div class="highlight" >
+              <pre><code>uid 用户ID</code></pre>
+            </div>
+            
+            <li>返回：json</li>
+            
+            <div class="highlight" >
+              <pre><code>签到成功：
+{
+  "success": 1，
+  "data": {
+    “kdou_added": 3, // 增加的k豆
+    "kdou": 29 // k豆总数
+  }
+}
+签到失败：
+{
+  "success": 0,
+  "data": {
+    "msg": 'Invalid token.',
+    "code": -1
+  }
+}</code></pre>
+            </div>
+            
+            <li>示例：</li>
+            
+            <div class="highlight" >
+              <pre><code>/api/sign_award?token=sdhk4h54j...&amp;uid=344</code></pre>
+            </div>
+            
+            <li>错误码：</li>
+            
+            <div class="highlight" >
+              <pre><code>-1001：参数错误
 -2：令牌无效
--3：数据保存出错
--4：提交过于频繁</code></pre>
+-1002：uid不存在
+-1003：签到日期异常
+-1004：签到天数错误</code></pre>
             </div>
           </ul>
           
@@ -220,6 +270,7 @@ context 意见内容</code></pre>
             <li><a href="#api-register">注册</a></li>
             <li><a href="#api-login">登录</a></li>
             <li><a href="#api-proposal">提交建议</a></li>
+            <li><a href="#api-sign_award">签到</a></li>
             @yield('docs-nav')
             <!--
             <li>

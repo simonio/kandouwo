@@ -13,17 +13,20 @@
 
 Route::get('/', array('as'=>'home','uses'=>'HomeController@home'));
 
+Route::filter('token', 'ApiController@check_token');
+
 # ------------------ Api -----------------------------------
 Route::group(array('prefix' => 'api'), function()
 {
-	Route::get('install', 'ApiController@install');
+  Route::get('install', 'ApiController@install');
   Route::get('search', 'ApiController@search');
   Route::get('token_test', 'ApiController@token_test');
-	Route::get('test', 'ApiController@test');
-	Route::post('register', 'ApiController@register');
+  Route::get('test', 'ApiController@test');
+  Route::post('register', 'ApiController@register');
   Route::post('login', 'ApiController@login');
-	Route::post('logout', 'ApiController@logout');
+  Route::post('logout', 'ApiController@logout');
   Route::post('proposal', 'ApiController@proposal');
+  Route::post('sign_award', array('before'=>'token', 'uses'=>'ApiController@sign_award'));
 });
 
 
