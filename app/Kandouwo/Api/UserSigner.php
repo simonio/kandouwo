@@ -15,10 +15,10 @@ use User;
 class UserSigner
 {
   private static $error_info = array(
-    'invalid_sign_award_input' => array('desc'=>'Invalid sign award input.','code'=>-1001),
-    'no_user' => array('desc'=>'No user of given uid.','code'=>-1002),
-    'error_date' => array('desc'=>'Invalid sign date.','code'=>-1003),
-    'error_days' => array('desc'=>'Invalid sign days.','code'=>-1004));
+    'invalid_sign_award_input' => array('desc'=>'Invalid sign award input.','code'=>-1),
+    'no_user' => array('desc'=>'No user of given uid.','code'=>-2),
+    'error_date' => array('desc'=>'Invalid sign date.','code'=>-3),
+    'error_days' => array('desc'=>'Invalid sign days.','code'=>-4));
     
   private static $sign_info = array(
     'max_sign_days' => 30, 

@@ -14,22 +14,22 @@ class ApiController extends BaseController
   protected static $kindleRegisterUrl = '';
 
   private static $error_info = array(
-    'invalie_token' => array('desc'=>'Invalid token.','code'=>-1),
-    'invalie_token_input' => array('desc'=>'Invalid token.','code'=>-2),
+    'invalie_token' => array('desc'=>'Invalid token.','code'=>-10000),
+    'invalie_token_input' => array('desc'=>'Invalid token.','code'=>-10001),
     
-    'invalid_input_kindleren' => array('desc'=>'Invalid kindleren register input.','code'=>-1001),
-    'invalid_input_kindleren_confirm' => array('desc'=>'Invalid kindleren register confirm input.','code'=>-1002),
-    'invalid_kindleren' => array('desc'=>'Invalid kindleren account or password.','code'=>-1003),
-    'invalid_input_kandouwo' => array('desc'=>'Invalid kandouwo input.','code'=>-1004),
-    'email_registered' => array('desc'=>'Email has been registered.','code'=>-1005),
+    'invalid_input_kindleren' => array('desc'=>'Invalid kindleren register input.','code'=>-1),
+    'invalid_input_kindleren_confirm' => array('desc'=>'Invalid kindleren register confirm input.','code'=>-2),
+    'invalid_kindleren' => array('desc'=>'Invalid kindleren account or password.','code'=>-3),
+    'invalid_input_kandouwo' => array('desc'=>'Invalid kandouwo input.','code'=>-4),
+    'email_registered' => array('desc'=>'Email has been registered.','code'=>-5),
     
-    'invalid_login_input' => array('desc'=>'Invalid login input.','code'=>-1001),
-    'has_login' => array('desc'=>'Has login.','code'=>-1002),
-    'invalid_kdw' => array('desc'=>'Invalid email or password.','code'=>-1003),
-    'invalid_email' => array('desc'=>'Invalid email format.','code'=>-1004),
+    'invalid_login_input' => array('desc'=>'Invalid login input.','code'=>-1),
+    'has_login' => array('desc'=>'Has login.','code'=>-2),
+    'invalid_kdw' => array('desc'=>'Invalid email or password.','code'=>-3),
+    'invalid_email' => array('desc'=>'Invalid email format.','code'=>-4),
     
-    'invalid_proposal_input' => array('desc'=>'Invalid proposal input.','code'=>-1001),
-    'error_store_proposal' => array('desc'=>'Error in store proposal.','code'=>-1002));
+    'invalid_proposal_input' => array('desc'=>'Invalid proposal input.','code'=>-1),
+    'error_store_proposal' => array('desc'=>'Error in store proposal.','code'=>-2));
 
   /**
    * 部署数据库

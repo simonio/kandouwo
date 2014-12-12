@@ -67,7 +67,7 @@ kidnleren_confirm kindle人账号确认注册（需同时提供参数：username
   "success": 0,
   "data": {
     "msg": 'Email has been registered.',
-    "code": -1001
+    "code": -1
   }
 }</code></pre>
             </div>
@@ -83,11 +83,11 @@ kidnleren_confirm kindle人账号确认注册（需同时提供参数：username
             <li>错误码：</li>
             
             <div class="highlight" >
-              <pre><code>-1001：申请kindle人账号注册的参数错误
--1002：确认kindle人账号注册的参数错误
--1003：无效的kindle人用户名或密码
--1004：注册参数错误
--1005：邮箱已经被注册</code></pre>
+              <pre><code>-1：申请kindle人账号注册的参数错误
+-2：确认kindle人账号注册的参数错误
+-3：无效的kindle人用户名或密码
+-4：注册参数错误
+-5：邮箱已经被注册</code></pre>
             </div>
           </ul>
           
@@ -149,10 +149,10 @@ uuid 设备id</code></pre>
             <li>错误码：</li>
             
             <div class="highlight" >
-              <pre><code>-1001：参数错误
--1002：已经登录
--1003：用户名或密码错误
--1004：邮箱格式错误</code></pre>
+              <pre><code>-1：参数错误
+-2：已经登录
+-3：用户名或密码错误
+-4：邮箱格式错误</code></pre>
             </div>
           </ul>
           
@@ -200,9 +200,9 @@ context 意见内容</code></pre>
             <li>错误码：</li>
             
             <div class="highlight" >
-              <pre><code>-1001：参数错误
--1002：数据保存出错
--1003：提交过于频繁</code></pre>
+              <pre><code>-1：参数错误
+-2：数据保存出错
+-3：提交过于频繁</code></pre>
             </div>
           </ul>
           
@@ -249,11 +249,11 @@ context 意见内容</code></pre>
             <li>错误码：</li>
             
             <div class="highlight" >
-              <pre><code>-1001：参数错误
--2：令牌无效
--1002：uid不存在
--1003：签到日期异常
--1004：签到天数错误</code></pre>
+              <pre><code>-1：参数错误
+-10000：令牌无效
+-2：uid不存在
+-3：签到日期异常
+-4：签到天数错误</code></pre>
             </div>
           </ul>
           
