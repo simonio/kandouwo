@@ -14,8 +14,8 @@ class ApiController extends BaseController
   protected static $kindleRegisterUrl = '';
 
   private static $error_info = array(
-    'invalie_token' => array('desc'=>'Invalid token.','code'=>-10000),
-    'invalie_token_input' => array('desc'=>'Invalid token.','code'=>-10001),
+    'invalid_token' => array('desc'=>'Invalid token.','code'=>-10000),
+    'invalid_token_input' => array('desc'=>'Invalid token input.','code'=>-10001),
     
     'invalid_input_kindleren' => array('desc'=>'Invalid kindleren register input.','code'=>-1),
     'invalid_input_kindleren_confirm' => array('desc'=>'Invalid kindleren register confirm input.','code'=>-2),
@@ -299,6 +299,13 @@ class ApiController extends BaseController
     return $user_signer->sign();
   }
 
+  public function sign_info()
+  {
+    $uid = Input::get('uid');
+    $user_signer = new \Kandouwo\Api\UserSigner($uid);
+    return $user_signer->sign_info(Input::get('days'));
+  }
+  
   public function token_test()
   {
     if (!Input::has('t') || !Input::has('o'))
@@ -318,8 +325,10 @@ class ApiController extends BaseController
 
   public function test()
   {
+    return strtotime("2004-04-04 02:02:13 GMT");
+    
     //echo \Kandouwo\Libraries\CurlHelp::get("www.baidu.com");
-    return KdwApi::error_response(ApiController::$error_info['invalie_token']);
+    return KdwApi::error_response(ApiController::$error_info['invalid_token']);
     
     return Response::json(json_decode(\Kandouwo\Libraries\CurlHelp::post(ApiController::
       $kindleRegisterUrl, array('username' => 'kandouwo', 'password' => 'kandouwo'))));
@@ -329,7 +338,11 @@ class ApiController extends BaseController
     //	array('username'=>'kandouwo','password'=>'kandouwo'))), 200, array(), 0);
   }
 
-
+  public function test_login()
+  {
+    return $this->login();  
+  }
+  
   /**
    * 获取kindle人的登录信息
    *

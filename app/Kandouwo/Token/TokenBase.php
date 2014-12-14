@@ -172,7 +172,7 @@ class TokenManagerBase
    *
    */
   //
-  public function ParseToken($tokenString, $key)
+  public function parse_token($tokenString, $key)
   {
     $tokenArray = TokenManagerBase::StringToArray($tokenString, '-');
     if ($tokenArray == null)
@@ -211,7 +211,7 @@ class TokenManagerBase
    *
    * 返回值：base64转码后的Token字符串
    */
-  public function ComposeToken($signMethod, $version, $timestamp, $once, $data, $key)
+  public function compose_token($signMethod, $version, $timestamp, $once, $data, $key)
   {
     // 内部信息
     $data[] = $timestamp;

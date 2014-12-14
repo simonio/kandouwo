@@ -22,11 +22,13 @@ Route::group(array('prefix' => 'api'), function()
   Route::get('search', 'ApiController@search');
   Route::get('token_test', 'ApiController@token_test');
   Route::get('test', 'ApiController@test');
-  Route::post('register', 'ApiController@register');
-  Route::post('login', 'ApiController@login');
-  Route::post('logout', 'ApiController@logout');
-  Route::post('proposal', 'ApiController@proposal');
-  Route::post('sign_award', array('before'=>'token', 'uses'=>'ApiController@sign_award'));
+  Route::get('test_login', 'ApiController@test_login');
+  Route::any('register', 'ApiController@register');
+  Route::any('login', 'ApiController@login');
+  Route::any('logout', 'ApiController@logout');
+  Route::any('proposal', 'ApiController@proposal');
+  Route::any('sign_award', array('before'=>'token', 'uses'=>'ApiController@sign_award'));
+  Route::any('sign_info', 'ApiController@sign_info');
 });
 
 

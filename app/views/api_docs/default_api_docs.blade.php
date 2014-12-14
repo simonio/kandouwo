@@ -257,6 +257,45 @@ context 意见内容</code></pre>
             </div>
           </ul>
           
+          
+          <!-- 查询签到记录 -->
+          <h2 id="api-sign_info">查询签到记录</h2>
+          <ul>
+            <li>HTTP：GET</li>
+            <li>认证：--</li>
+            <li>URI：/api/sign_info</li>
+            <li>参数：</li>
+            
+            <div class="highlight" >
+              <pre><code>uid 用户ID
+days 签到记录的天数（不提供时，默认为30天）</code></pre>
+            </div>
+            
+            <li>返回：json</li>
+            
+            <div class="highlight" >
+              <pre><code>签到记录：
+{
+  "success": 1,
+  "data": {
+    sign_record": [1418553413,1418654413,...]
+  }
+}</code></pre>
+            </div>
+            
+            <li>示例：</li>
+            
+            <div class="highlight" >
+              <pre><code>/api/sign_info?uid=344&amp;days=30</code></pre>
+            </div>
+            
+            <li>错误码：</li>
+            
+            <div class="highlight" >
+              <pre><code>无</code></pre>
+            </div>
+          </ul>
+          
           @yield('docs')
         </div>
       </div>
@@ -271,6 +310,7 @@ context 意见内容</code></pre>
             <li><a href="#api-login">登录</a></li>
             <li><a href="#api-proposal">提交建议</a></li>
             <li><a href="#api-sign_award">签到</a></li>
+            <li><a href="#api-sign_info">查询签到记录</a></li>
             @yield('docs-nav')
             <!--
             <li>

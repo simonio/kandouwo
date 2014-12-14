@@ -1,6 +1,7 @@
 <?php namespace Kandouwo\Api;
 
 use UserSign;
+use UserSignRecord;
 use User;
 
 /**
@@ -18,10 +19,13 @@ class UserSigner
     'invalid_sign_award_input' => array('desc'=>'Invalid sign award input.','code'=>-1),
     'no_user' => array('desc'=>'No user of given uid.','code'=>-2),
     'error_date' => array('desc'=>'Invalid sign date.','code'=>-3),
-    'error_days' => array('desc'=>'Invalid sign days.','code'=>-4));
+    'error_days' => array('desc'=>'Invalid sign days.','code'=>-4),
+    'invalid_sign_info_input' => array('desc'=>'Invalid sign info input.','code'=>-5),
+    'no_user_sign_record' => array('desc'=>'No user sign record.','code'=>-6));
     
   private static $sign_info = array(
-    'max_sign_days' => 30, 
+    'max_sign_days' => 30,
+    'record_days' => 30, // 理论上 record_days == max_sign_days，但 max_sign_days <= 0 除外 
     'level' => array(
       0 => 1,
       3 => 2,
@@ -85,11 +89,14 @@ class UserSigner
         if ($sign_days > $max_sign_days_tmp) $max_sign_days_tmp = $sign_days;
         if ($max_sign_days_tmp > $max_sign_days) $max_sign_days = $max_sign_days_tmp;
 
+        // 更新签到信息
         $user_sign->update(array(
           'sign_date' => $today->format('Y-m-d H:i:s'),
           'sign_days' => $sign_days,
           'max_sign_days' => $max_sign_days,
           'max_sign_days_tmp' => $max_sign_days_tmp));
+        // 保存签到记录
+        $this->store_sign_record($this->uid, $today);
         return $this->sign_award($user, $user_sign->sign_days, $max_sign_days);
       } else
         if ($diff_days->d <= 0) // 异常签到
@@ -97,8 +104,11 @@ class UserSigner
           return KdwApi::error_response(UserSigner::$error_info['error_date']);
         } else // 连续签到被打断
         {
+          // 更新签到信息
           $user_sign->update(array('sign_date' => $today->format('Y-m-d H:i:s'), 'sign_days' =>
               1, 'max_sign_days_tmp' => 1));
+          // 保存签到记录
+          $this->store_sign_record($this->uid, $today);
           return $this->sign_award($user, 1, $max_sign_days);
         }
     }
@@ -107,19 +117,32 @@ class UserSigner
   /**
    * 查询签到信息
    */
-  public function sign_info()
+  public function sign_info($days)
   {
-    $user_sign = UserSign::where('uid', '=', $this->uid)->first();
-    if ($user_sign == null)
+    if ($this->uid == null)
     {
-      return KdwApi::error_response(UserSigner::$error_info['no_user']);
-    } else 
-    {
-      return KdwApi::success_response(array(
-        'sign_date' => $user_sign->sign_date,
-        'sign_days' => $user_sign->sign_days,
-        'max_sign_days' => $user_sign->max_sign_days));
+      return KdaApi::error_response(UserSigner::$error_info['invalid_sign_info_input']);
     }
+    
+    if ($days == null || $days <= 0) $days = UserSigner::$sign_info['record_days'];
+    
+    $today = new \DateTime();
+    $today->modify('-'.$days.' day');
+    $user_signs = UserSignRecord::where('uid', '=', $this->uid)->
+      where('sign_date', '>=', $today->format('Y-m-d H:i:s'))->get();
+    //$user_signs = UserSignRecord::where('sign_date', '>=', $today->format('Y-m-d H:i:s'))->
+    //  take(UserSigner::$sign_info['record_days'])->get();
+    
+    $result = array();
+    if ($user_signs != null)
+    {
+      foreach ($user_signs as $user_sign)
+      {
+        // strtotime("2004-04-04 02:00:00 GMT");
+        $result[] = strtotime($user_sign->sign_date . ' GMT');
+      }
+    }
+    return KdwApi::success_response(array('sign_record'=>$result));
   }
   
   /**
@@ -164,5 +187,11 @@ class UserSigner
       }
     }
     return $level;
+  }
+  
+  private function store_sign_record($uid, $sign_date)
+  {
+    $sign_record = UserSignRecord::create(array('uid'=>$uid, 'sign_date'=>$sign_date));
+    return $sign_record;
   }
 }
