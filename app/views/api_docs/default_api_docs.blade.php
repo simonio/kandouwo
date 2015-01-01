@@ -13,6 +13,7 @@
 
 @section('script')
   <script src="../public/js/docs.min.js"></script>
+  <script src="../public/js/api_doc_main.js"></script>
 @stop
 
 @section('content_before')
@@ -25,8 +26,11 @@
     <div class="row">
       <div class="col-md-10" role="main">
         <div class="bs-docs-section">
-          <h1 id="api" class="page-header">Api 接口说明</h1>
-          
+          <h1 id="api" class="page-header">Api 接口说明
+            @if ($admin)
+              <button type="button" class="btn btn-primary btn_doc_add float_right">添加</button>
+            @endif
+          </h1>
           <!-- 注册 -->
           <h2 id="api-register">注册</h2>
           <ul>

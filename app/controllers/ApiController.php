@@ -10,26 +10,25 @@ class ApiController extends BaseController
   protected static $token_key = 'nrq!1d5t';
   protected static $nickname_prefix = '路人';
   protected static $nickname_base = 123456;
-  protected static $token_expired_time = 1800;
   protected static $kindleRegisterUrl = '';
 
   private static $error_info = array(
-    'invalid_token' => array('desc'=>'Invalid token.','code'=>-10000),
-    'invalid_token_input' => array('desc'=>'Invalid token input.','code'=>-10001),
+    'invalid_input_kindleren' => array('msg'=>'Invalid kindleren register input.','code'=>-1),
+    'invalid_input_kindleren_confirm' => array('msg'=>'Invalid kindleren register confirm input.','code'=>-2),
+    'invalid_kindleren' => array('msg'=>'Invalid kindleren account or password.','code'=>-3),
+    'invalid_input_kandouwo' => array('msg'=>'Invalid kandouwo input.','code'=>-4),
+    'email_registered' => array('msg'=>'Email has been registered.','code'=>-5),
     
-    'invalid_input_kindleren' => array('desc'=>'Invalid kindleren register input.','code'=>-1),
-    'invalid_input_kindleren_confirm' => array('desc'=>'Invalid kindleren register confirm input.','code'=>-2),
-    'invalid_kindleren' => array('desc'=>'Invalid kindleren account or password.','code'=>-3),
-    'invalid_input_kandouwo' => array('desc'=>'Invalid kandouwo input.','code'=>-4),
-    'email_registered' => array('desc'=>'Email has been registered.','code'=>-5),
+    'invalid_login_input' => array('msg'=>'Invalid login input.','code'=>-1),
+    'has_login' => array('msg'=>'Has login.','code'=>-2),
+    'invalid_kdw' => array('msg'=>'Invalid email or password.','code'=>-3),
+    'invalid_email' => array('msg'=>'Invalid email format.','code'=>-4),
     
-    'invalid_login_input' => array('desc'=>'Invalid login input.','code'=>-1),
-    'has_login' => array('desc'=>'Has login.','code'=>-2),
-    'invalid_kdw' => array('desc'=>'Invalid email or password.','code'=>-3),
-    'invalid_email' => array('desc'=>'Invalid email format.','code'=>-4),
+    'invalid_proposal_input' => array('msg'=>'Invalid proposal input.','code'=>-1),
+    'error_store_proposal' => array('msg'=>'Error in store proposal.','code'=>-2),
     
-    'invalid_proposal_input' => array('desc'=>'Invalid proposal input.','code'=>-1),
-    'error_store_proposal' => array('desc'=>'Error in store proposal.','code'=>-2));
+    'invalid_user_info_input' => array('msg'=>'Invalid user info input.','code'=>-1),
+    'no_user' => array('msg'=>'No user of given uid.','code'=>-2));
 
   /**
    * 部署数据库
@@ -166,7 +165,7 @@ class ApiController extends BaseController
       'kindle_dou' => ($kindle != null && isset($kindle['credit'])) ? $kindle['credit'] :
         0,
       'token' => $tokenstring,
-      'expired' => ApiController::$token_expired_time));
+      'expired' => KdwApi::$token_expired_time));
   }
 
   /**
@@ -212,8 +211,12 @@ class ApiController extends BaseController
       {
         $user = User::where('email', '=', $account)->where('kindleren', '=', 'true')->
           first();
-        $kindle = $this->get_kindle_info($user->nickname, $user->password);
-        if ($kindle == null)
+        if ($user !== null)
+        {
+          $kindle = $this->get_kindle_info($user->nickname, $user->password);
+          
+        }
+        if ($kindle == null || $user == null)
         {
           return KdwApi::error_response(ApiController::$error_info['invalid_kdw']);
         }
@@ -239,23 +242,58 @@ class ApiController extends BaseController
       'password' => $password,
       'uuid' => $uuid), $account);
 
-    return KdwApi::success_response(array(
-      'token' => $tokenstring,
-      'expired' => ApiController::$token_expired_time,
-      'uid' => $user->id,
-      'nickname' => $user->nickname,
-      'sex' => $user->sex,
-      'signature' => $user->signature,
-      'kdou' => $user->kdou,
-      'kindle_dou' => isset($kindle['credit']) ? $kindle['credit'] : 0,
-      'thumbnail' => $user->thumbnail,
-      'thumbnail_big' => $user->thumbnail_big,
-      'attend_date' => $user->attend_date,
-      'lastlogin_place' => $user->lastlogin_place,
-      'readed_book_num' => $user->readed_book_num,
-      'download_book_num' => $user->download_book_num,
-      'comment_num' => $user->comment_num,
-      'kindleren' => $user->kindleren));
+    $user_info = $user->toArray();
+    $user_info['token'] = $tokenstring;
+    $user_info['expired'] = KdwApi::$token_expired_time;
+    $user_info['kindle_dou'] = isset($kindle['credit']) ? $kindle['credit'] : 0;
+    
+    return KdwApi::success_response($user_info);
+  }
+  
+  
+  /**
+   * 登出
+   * 
+   */
+  public function logout()
+  {
+    
+  }
+  
+  /**
+   * 用户信息
+   * 'type' = ['get','set']
+   */
+  public function user_info()
+  {
+    $type = Input::get('type');
+    $uid = Input::get('uid');
+    if ($type == null || ($type != 'get' && $type != 'set'))
+    {
+      return KdwApi::error_response(ApiController::$error_info['invalid_user_info_input']);
+    }
+    
+    $user = User::find($uid);
+    if ($user == null)
+    {
+      return KdwApi::error_response(ApiController::$error_info['no_user']);
+    }
+    
+    if ($type == 'get')
+    {
+      return KdwApi::success_response($user->toArray());
+    }
+    elseif ($type == 'set')
+    {
+      $success = $user->update(array(Input::only('','','')));
+      if ($success == true)
+      {
+        return KdwApi::success_response();
+      } else
+      {
+        return KdwApi::error_response(ApiController::$error_info['save_error']);
+      }
+    }
   }
 
   /**
@@ -306,6 +344,45 @@ class ApiController extends BaseController
     return $user_signer->sign_info(Input::get('days'));
   }
   
+  public function edit_doc()
+  {
+    $id = Input::get('_id');
+    $data = array(
+      'title'=>Stripslashes(Input::get('_title')),
+      'http'=>Stripslashes(Input::get('_http')),
+      'token'=>Stripslashes(Input::get('_token')),
+      'uri'=>Stripslashes(Input::get('_uri')),
+      'param'=>Stripslashes(Input::get('_param')),
+      'return'=>Stripslashes(Input::get('_return')),
+      'example'=>Stripslashes(Input::get('_example')),
+      'error_code'=>Stripslashes(Input::get('_error_code'))
+    );
+    
+    Log::info('_return:'.Input::get('_return'));
+      
+    ApiDoc::find($id)->update($data);
+    return KdwApi::success_response();
+  }
+  
+  public function add_doc()
+  {
+    $data = array(
+      'title'=>Stripslashes(Input::get('_title')),
+      'http'=>Stripslashes(Input::get('_http')),
+      'token'=>Stripslashes(Input::get('_token')),
+      'uri'=>Stripslashes(Input::get('_uri')),
+      'param'=>Stripslashes(Input::get('_param')),
+      'return'=>Stripslashes(Input::get('_return')),
+      'example'=>Stripslashes(Input::get('_example')),
+      'error_code'=>Stripslashes(Input::get('_error_code'))
+    );
+    
+    Log::info('_return:'.Input::get('_return'));
+    
+    $doc = ApiDoc::create($data);
+    return KdwApi::success_response();
+  }
+  
   public function token_test()
   {
     if (!Input::has('t') || !Input::has('o'))
@@ -328,7 +405,7 @@ class ApiController extends BaseController
     return strtotime("2004-04-04 02:02:13 GMT");
     
     //echo \Kandouwo\Libraries\CurlHelp::get("www.baidu.com");
-    return KdwApi::error_response(ApiController::$error_info['invalid_token']);
+    return KdwApi::error_response(KdwApi::$error_info['invalid_token']);
     
     return Response::json(json_decode(\Kandouwo\Libraries\CurlHelp::post(ApiController::
       $kindleRegisterUrl, array('username' => 'kandouwo', 'password' => 'kandouwo'))));
@@ -366,7 +443,7 @@ class ApiController extends BaseController
 
   /**
    * 判断输入的参数是否正确
-   * 
+   * @param param_array 参数名数组：array('uid','password',...)
    * @return boolean
    */
   protected function is_valid_input($param_array)
@@ -382,9 +459,10 @@ class ApiController extends BaseController
   }
 
   /**
-   *
    * 创建token，并保存session
-   *
+   * @param data token包含的数据(array)
+   * @param uid 用户id(int)
+   * @param session 是否保存到session(boolean)
    */
   protected function compose_token($data, $uid, $session = true)
   {
@@ -425,20 +503,15 @@ class ApiController extends BaseController
    * 判断token是否有效
    *
    */
-  public function check_token()
+  public function check_token($response=true)
   {
-    $uid = Input::get('uid');
-    $token = Input::get('token');
-    if ($uid == null || $token == null)
+    $ret = KdwApi::check_token();
+    if ($ret == -1)
     {
-      return KdwApi::error_response(ApiController::$error_info['invalid_token_input']);
+      return KdwApi::error_response(KdwApi::$error_info['invalid_token_input']);
+    } elseif ($ret == -2)
+    {
+      return KdwApi::error_response(KdwApi::$error_info['invalid_token']);
     }
-    
-    if (!((Session::has($uid . '_token') && Session::has($uid . '_time') && Session::
-      get($uid . '_token') === $token && (time() - Session::get($uid . '_time')) <
-      ApiController::$token_expired_time)))
-      {
-        return KdwApi::error_response(ApiController::$error_info['invalid_token']);
-      }
   }
 }

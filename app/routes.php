@@ -26,9 +26,12 @@ Route::group(array('prefix' => 'api'), function()
   Route::any('register', 'ApiController@register');
   Route::any('login', 'ApiController@login');
   Route::any('logout', 'ApiController@logout');
+  Route::any('user_info', array('before'=>'token', 'uses'=>'ApiController@user_info'));
   Route::any('proposal', 'ApiController@proposal');
   Route::any('sign_award', array('before'=>'token', 'uses'=>'ApiController@sign_award'));
   Route::any('sign_info', 'ApiController@sign_info');
+  Route::any('edit_doc', array('before'=>'auth', 'uses'=>'ApiController@edit_doc'));
+  Route::any('add_doc', array('before'=>'auth', 'uses'=>'ApiController@add_doc'));
 });
 
 

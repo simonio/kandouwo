@@ -10,3 +10,11 @@ html,body {
 .kwd-container {
   padding-top: 40px;
 }
+
+.float_left {
+  float: left !important;
+}
+
+.float_right {
+  float: right !important;
+}

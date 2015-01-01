@@ -21,6 +21,8 @@ class User extends Eloquent implements UserInterface, RemindableInterface {
 	 * @var array
 	 */
 	protected $hidden = array('id','password');
+  
+  public static $fields = array();
 
 	/**
 	 * Get the unique identifier for the user.
